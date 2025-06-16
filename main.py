@@ -35,7 +35,7 @@ def process_product(product, brand, sku, config):
     try:
         raw = get_raw_details(product, brand, sku)
         cleaned = clean_raw_text(raw)
-        desc, specs, urls = parse_raw_details(cleaned)
+        desc, specs, urls, spec_dict = parse_raw_details(cleaned)
 
         en_short, en_long, is_short, is_long, keywords = generate_multilang_descriptions(
             desc,
@@ -62,6 +62,7 @@ def process_product(product, brand, sku, config):
             "short_description_is": is_short,
             "long_description_is": is_long,
             "keywords": keywords,
+            "technical_specifications": spec_dict,
             "image_file_path": html_filename,
             "image_urls":images,
             "generated_at": now
