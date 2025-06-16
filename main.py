@@ -1,5 +1,7 @@
 import os
 import csv
+import json
+from datetime import datetime
 from utils.extractor import get_raw_details, clean_raw_text, parse_raw_details
 from utils.seo_writer import generate_multilang_descriptions
 from utils.image_scraper import extract_images_from_all_urls
@@ -7,6 +9,7 @@ from utils.html_exporter import export_images_to_html
 from utils.helpers import normalize_input
 
 os.makedirs("output", exist_ok=True)
+os.makedirs("output/json", exist_ok=True)
 summary_rows = []
 
 mode = input("Run Mode - Enter '1' for Single Product Input or '2' for CSV Batch Mode: ").strip()
@@ -21,6 +24,11 @@ def get_config():
     extra_keywords = input("Optional Keywords (comma separated): ").strip()
     extra_keywords = [k.strip() for k in extra_keywords.split(",") if k.strip()] if extra_keywords else []
     return tone, temperature, top_p, max_tokens, short_limit, long_limit, extra_keywords
+
+def save_json(data, sku):
+    json_path = f"output/json/{sku}.json"
+    with open(json_path, "w", encoding="utf-8") as jf:
+        json.dump(data, jf, indent=4, ensure_ascii=False)
 
 def process_product(product, brand, sku, config):
     print(f"\n🔍 Processing: {product} ({sku})")
@@ -44,6 +52,21 @@ def process_product(product, brand, sku, config):
         html_filename = f"output/{product.replace(' ', '_')}.html"
         export_images_to_html(images, filename=html_filename, images_per_row=4)
 
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        json_data = {
+            "product_name": product,
+            "brand": brand,
+            "sku": sku,
+            "short_description_en": en_short,
+            "long_description_en": en_long,
+            "short_description_is": is_short,
+            "long_description_is": is_long,
+            "keywords": keywords,
+            "image_file_path": html_filename,
+            "generated_at": now
+        }
+        save_json(json_data, sku)
+
         output = {
             "Product Name": product,
             "Short Description (EN)": en_short,
@@ -60,6 +83,7 @@ def process_product(product, brand, sku, config):
             print("\n📦 OUTPUT:")
             for k, v in output.items():
                 print(f"{k}: {v}")
+            print(f"📝 JSON saved to: output/json/{sku}.json")
 
     except Exception as e:
         print(f"❌ Failed for {product}: {e}")
