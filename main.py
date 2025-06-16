@@ -65,6 +65,10 @@ def process_product(product, brand, sku, config):
         print(f"❌ Failed for {product}: {e}")
 
 if mode == '1':
+    product = normalize_input(input("Enter Product Name: "))
+    brand = normalize_input(input("Enter Brand: "))
+    sku = normalize_input(input("Enter SKU: "))
+
     tone, temperature, top_p, max_tokens, short_limit, long_limit, extra_keywords = get_config()
     config = {
         "tone": tone,
@@ -75,10 +79,6 @@ if mode == '1':
         "long_limit": long_limit,
         "extra_keywords": extra_keywords
     }
-
-    product = normalize_input(input("Enter Product Name: "))
-    brand = normalize_input(input("Enter Brand: "))
-    sku = normalize_input(input("Enter SKU: "))
 
     process_product(product, brand, sku, config)
 
