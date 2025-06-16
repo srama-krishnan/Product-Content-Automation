@@ -63,6 +63,7 @@ def process_product(product, brand, sku, config):
             "long_description_is": is_long,
             "keywords": keywords,
             "image_file_path": html_filename,
+            "image_urls":images,
             "generated_at": now
         }
         save_json(json_data, sku)
