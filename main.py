@@ -1,7 +1,7 @@
 import os
 import csv
 from utils.extractor import get_raw_details, clean_raw_text, parse_raw_details
-from utils.seo_writer import generate_seo_descriptions
+from utils.seo_writer import generate_multilang_descriptions
 from utils.image_scraper import extract_images_from_all_urls
 from utils.html_exporter import export_images_to_html
 from utils.helpers import normalize_input
@@ -17,7 +17,7 @@ def process_product(product, brand, sku):
         raw = get_raw_details(product, brand, sku)
         cleaned = clean_raw_text(raw)
         desc, specs, urls = parse_raw_details(cleaned)
-        short, long, keywords = generate_seo_descriptions(desc)
+        short, long, keywords = generate_multilang_descriptions(desc)
         print(f"✅ SEO descriptions generated for {product}")
         images = extract_images_from_all_urls(urls, keywords, global_limit=20)
         print(f"✅ Images collected: {len(images)}")
