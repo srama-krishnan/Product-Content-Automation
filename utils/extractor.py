@@ -89,4 +89,13 @@ def parse_raw_details(raw_text):
     except:
         source_links = []
 
-    return official_description, technical_specifications, source_links
+    spec_dict = {}
+    for line in technical_specifications.splitlines():
+        if ':' in line:
+            key, value = line.split(':', 1)
+            key = key.strip(" -:\u2022").capitalize()
+            value = value.strip(" -:")
+            if key and value:
+                spec_dict[key] = value
+
+    return official_description, technical_specifications, source_links, spec_dict
