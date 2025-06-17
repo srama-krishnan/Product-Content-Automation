@@ -14,7 +14,7 @@ def get_config():
     tone = input("Tone (default: Professional, highlight features): ").strip() or "Write professionally and highlight key features."
     temperature = float(input("Temperature (default: 0.7): ").strip() or 0.7)
     top_p = float(input("Top-p (default: 1.0): ").strip() or 1.0)
-    max_tokens = int(input("Max Tokens (default: 700): ").strip() or 700)
+    max_tokens = int(input("Max Tokens (default: 800): ").strip() or 700)
     short_limit = int(input("Word limit for Short Description (default: 25): ").strip() or 25)
     long_limit = int(input("Word limit for Long Description (default: 200): ").strip() or 200)
     extra_keywords = input("Optional Keywords (comma separated): ").strip()
@@ -53,7 +53,7 @@ def process_product(product, brand, sku, config):
         )
 
         image_search_urls = generate_image_search_links(product, brand, sku, en_long, spec_dict)
-        images = extract_images_from_all_urls(image_search_urls, keywords, sku)
+        images = extract_images_from_all_urls(image_search_urls, keywords)
 
         html_filename = f"output/{product.replace(' ', '_')}.html"
         export_images_to_html(images, filename=html_filename, images_per_row=4)

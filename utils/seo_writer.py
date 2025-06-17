@@ -7,7 +7,7 @@ from utils.helpers import slugify_url
 config = dotenv_values(".env")
 client = OpenAI(api_key=config["APIKEY"])
 
-def generate_multilang_descriptions(official_description, temperature=0.7, top_p=1.0, max_tokens=700, tone="Write professionally and highlight key features.", short_limit=25, long_limit=200, extra_keywords=None):
+def generate_multilang_descriptions(official_description, temperature=0.7, top_p=1.0, max_tokens=800, tone="Write professionally and highlight key features.", short_limit=25, long_limit=200, extra_keywords=None):
 
     keyword_hint = ", ".join(extra_keywords) if extra_keywords else "none"
 
@@ -79,24 +79,24 @@ def generate_image_search_links(product, brand, sku, desc, specs):
     slug = slugify_url(english_product)
     guessed_link = f"https://ht.is/{slug}.html"
 
-#     prompt = f"""
-# Given the product:
-# - Name: {product}
-# - Brand: {brand}
-# - SKU: {sku}
-
-# Generate 3-5 accurate, live, product-specific web page URLs from trusted e-commerce sources (e.g., ht.is, amazon.com, brands’ sites) where actual product images are likely found.
-
-# Priority rules:
-# 1. Check if `https://ht.is/{slug}.html` is a valid product page and include it first.
-# 2. Avoid home pages or category pages.
-# 3. Only include links that are likely to contain product images.
-# 4. Prefer sites like `ht.is`, `amazon.com`, `brands’ site`, etc.
-
-# Respond with only plain URLs, one per line.
-# """
     prompt = f"""
-    Search the Web eaxctly for: "{product} {sku}" and return the first three links that is been retrieved exactly as it is, do not shorten or do something with the URL. Just search and provide the three URLS."""
+Given the product:
+- Name: {product}
+- Brand: {brand}
+- SKU: {sku}
+
+Generate 3-5 accurate, live, product-specific web page URLs from trusted e-commerce sources (e.g., ht.is, amazon.com, brands’ sites) where actual product images are likely found.
+
+Priority rules:
+1. Check if `https://ht.is/{slug}.html` is a valid product page and include it first.
+2. Avoid home pages or category pages.
+3. Only include links that are likely to contain product images.
+4. Prefer sites like `ht.is`, `amazon.com`, `brands’ site`, etc.
+
+Respond with only plain URLs, one per line.
+"""
+    # prompt = f"""
+    # Search the Web eaxctly for: "{product} {sku}" and return the first three links that is been retrieved exactly as it is, do not shorten or do something with the URL. Just search and provide the three URLS."""
 
     response = client.chat.completions.create(
         model="gpt-4o",
@@ -107,7 +107,11 @@ def generate_image_search_links(product, brand, sku, desc, specs):
         ]
     )
 
-    urls = re.findall(r'https?://[^\s]+', response.choices[0].message.content)
+    raw_response = response.choices[0].message.content.strip()
+    print(f"\n🧠 GPT Response for URLs:\n{raw_response}")
+
+    urls = re.findall(r'https?://[^\s]+', raw_response)
     if guessed_link not in urls:
         urls.insert(0, guessed_link)
+    print(f"🔗 Final URL list: {urls}")
     return urls

@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from openai import OpenAI
 from dotenv import dotenv_values
 from utils.helpers import slugify_url
+from urllib.parse import urljoin
 
 config = dotenv_values(".env")
 client = OpenAI(api_key=config["APIKEY"])
@@ -48,13 +49,12 @@ def get_valid_product_links(product_name, brand, sku, max_links=5):
             continue
     return valid_links
 
-def extract_images_from_all_urls(product_name, brand, sku, keywords=None, global_limit=20):
+def extract_images_from_all_urls(urls, keywords=None, global_limit=20):
     all_images = []
-    urls = get_valid_product_links(product_name, brand, sku)
 
-    print(f"\n🔍 Processing: {product_name} ({sku})")
+    print(f"\n🔍 Processing: {urls}")
 
-    # Image filters
+    # Filters
     block_if_contains = ["facebook.com/tr", "datocms-assets.com", "logo", "sprite", "icon", "tracking"]
     allowed_ext = (".jpg", ".jpeg", ".png", ".webp")
 
@@ -69,14 +69,17 @@ def extract_images_from_all_urls(product_name, brand, sku, keywords=None, global
             found = 0
 
             for tag in imgs:
-                src = tag.get('src') or tag.get('data-src') or tag.get('data-original')
+                src = (
+                    tag.get('src') or
+                    tag.get('data-src') or
+                    tag.get('data-original') or
+                    tag.get('data-lazy') or
+                    tag.get('data-srcset')
+                )
                 if not src:
                     continue
                 src = src.strip()
-                if src.startswith('//'):
-                    src = 'https:' + src
-                if not src.startswith('http'):
-                    continue
+                src = urljoin(url, src)  # Handle relative URLs
                 if not src.lower().endswith(allowed_ext):
                     continue
                 if any(bad in src.lower() for bad in block_if_contains):
@@ -89,7 +92,10 @@ def extract_images_from_all_urls(product_name, brand, sku, keywords=None, global
                 if len(all_images) >= global_limit:
                     break
 
-        except Exception:
+            print(f"✅ Found {found} images from {url}")
+
+        except Exception as e:
+            print(f"❌ Error fetching from {url}: {e}")
             continue
 
         if len(all_images) >= global_limit:
