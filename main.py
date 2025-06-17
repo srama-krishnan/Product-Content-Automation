@@ -1,18 +1,14 @@
 import os
-import csv
 import json
 from datetime import datetime
+from utils.helpers import normalize_input, slugify_url
 from utils.extractor import get_raw_details, clean_raw_text, parse_raw_details
-from utils.seo_writer import generate_multilang_descriptions
+from utils.seo_writer import generate_multilang_descriptions, generate_image_search_links
 from utils.image_scraper import extract_images_from_all_urls
 from utils.html_exporter import export_images_to_html
-from utils.helpers import normalize_input
 
 os.makedirs("output", exist_ok=True)
 os.makedirs("output/json", exist_ok=True)
-summary_rows = []
-
-mode = input("Run Mode - Enter '1' for Single Product Input or '2' for CSV Batch Mode: ").strip()
 
 def get_config():
     tone = input("Tone (default: Professional, highlight features): ").strip() or "Write professionally and highlight key features."
@@ -23,7 +19,15 @@ def get_config():
     long_limit = int(input("Word limit for Long Description (default: 200): ").strip() or 200)
     extra_keywords = input("Optional Keywords (comma separated): ").strip()
     extra_keywords = [k.strip() for k in extra_keywords.split(",") if k.strip()] if extra_keywords else []
-    return tone, temperature, top_p, max_tokens, short_limit, long_limit, extra_keywords
+    return {
+        "tone": tone,
+        "temperature": temperature,
+        "top_p": top_p,
+        "max_tokens": max_tokens,
+        "short_limit": short_limit,
+        "long_limit": long_limit,
+        "extra_keywords": extra_keywords
+    }
 
 def save_json(data, sku):
     json_path = f"output/json/{sku}.json"
@@ -48,7 +52,9 @@ def process_product(product, brand, sku, config):
             extra_keywords=config["extra_keywords"]
         )
 
-        images = extract_images_from_all_urls(urls, keywords, global_limit=20)
+        image_search_urls = generate_image_search_links(product, brand, sku, en_long, spec_dict)
+        images = extract_images_from_all_urls(image_search_urls, keywords, sku)
+
         html_filename = f"output/{product.replace(' ', '_')}.html"
         export_images_to_html(images, filename=html_filename, images_per_row=4)
 
@@ -64,84 +70,25 @@ def process_product(product, brand, sku, config):
             "keywords": keywords,
             "technical_specifications": spec_dict,
             "image_file_path": html_filename,
-            "image_urls":images,
+            "image_urls": images,
             "generated_at": now
         }
+
         save_json(json_data, sku)
 
-        output = {
-            "Product Name": product,
-            "Short Description (EN)": en_short,
-            "Long Description (EN)": en_long,
-            "Short Description (IS)": is_short,
-            "Long Description (IS)": is_long,
-            "Keywords": ', '.join(keywords),
-            "Image File Path": html_filename
-        }
-
-        if mode == '2':
-            summary_rows.append(output)
-        else:
-            print("\n📦 OUTPUT:")
-            for k, v in output.items():
+        print("\n📦 OUTPUT:")
+        for k, v in json_data.items():
+            if k != "image_urls":
                 print(f"{k}: {v}")
-            print(f"📝 JSON saved to: output/json/{sku}.json")
+        print(f"📝 JSON saved to: output/json/{sku}.json")
 
     except Exception as e:
         print(f"❌ Failed for {product}: {e}")
 
-if mode == '1':
-    product = normalize_input(input("Enter Product Name: "))
-    brand = normalize_input(input("Enter Brand: "))
-    sku = normalize_input(input("Enter SKU: "))
+# ---- Main Entry ----
+product = normalize_input(input("Enter Product Name: "))
+brand = normalize_input(input("Enter Brand: "))
+sku = normalize_input(input("Enter SKU: "))
+config = get_config()
 
-    tone, temperature, top_p, max_tokens, short_limit, long_limit, extra_keywords = get_config()
-    config = {
-        "tone": tone,
-        "temperature": temperature,
-        "top_p": top_p,
-        "max_tokens": max_tokens,
-        "short_limit": short_limit,
-        "long_limit": long_limit,
-        "extra_keywords": extra_keywords
-    }
-
-    process_product(product, brand, sku, config)
-
-elif mode == '2':
-    tone, temperature, top_p, max_tokens, short_limit, long_limit, extra_keywords = get_config()
-    config = {
-        "tone": tone,
-        "temperature": temperature,
-        "top_p": top_p,
-        "max_tokens": max_tokens,
-        "short_limit": short_limit,
-        "long_limit": long_limit,
-        "extra_keywords": extra_keywords
-    }
-
-    with open("Product_info.csv", mode="r", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            product = normalize_input(row["Product Name"])
-            brand = normalize_input(row["Brand"])
-            sku = normalize_input(row["SKU"])
-            process_product(product, brand, sku, config)
-
-    with open("output/Product_Summary.csv", mode="w", newline='', encoding="utf-8-sig") as f:
-        writer = csv.DictWriter(f, fieldnames=[
-            "Product Name",
-            "Short Description (EN)",
-            "Long Description (EN)",
-            "Short Description (IS)",
-            "Long Description (IS)",
-            "Keywords",
-            "Image File Path"
-        ])
-        writer.writeheader()
-        writer.writerows(summary_rows)
-
-    print("\n📄 Summary CSV saved as: output/Product_Summary.csv")
-
-else:
-    print("Invalid mode selected. Exiting.")
+process_product(product, brand, sku, config)
