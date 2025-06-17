@@ -1,90 +1,98 @@
+import re
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+from openai import OpenAI
+from dotenv import dotenv_values
+from utils.helpers import slugify_url
 
-def is_large_enough_image(img_url, min_kb=5):
-    try:
-        head = requests.head(img_url, timeout=5)
-        size = int(head.headers.get("Content-Length", 0))
-        return size > min_kb * 1024
-    except:
-        return False
-    
-def extract_images_from_single_url(url, keywords=None, max_imgs=25):
-    headers = {"User-Agent": "Mozilla/5.0"}
+config = dotenv_values(".env")
+client = OpenAI(api_key=config["APIKEY"])
 
-    if not keywords:
-        keywords = []
+def generate_source_links_prompt(product_name, brand, sku):
+    return f"""
+Given the following product details, return 3 to 5 direct URLs to official product pages or trusted retailer listings that show clear product images.
 
-    fallback_keywords = ['product', 'smart', 'uhd', 'tv', 'display', 'feature']
-    keywords = [k.lower() for k in keywords]
-    if len(keywords) < 3:
-        keywords += fallback_keywords
+Only return URLs that:
+- Lead directly to a product detail page (not a search, category, or homepage)
+- Are valid and accessible
+- Contain relevant images for scraping
 
-    def normalize(src, base):
-        if src.startswith("//"):
-            return "https:" + src
-        elif src.startswith("/"):
-            return urljoin(base, src)
-        elif not src.startswith("http"):
-            return urljoin(base, src)
-        return src
+Product Name: {product_name}
+Brand: {brand}
+SKU: {sku}
 
-    def is_valid_filename(src):
-        return not any(ext in src for ext in ['.svg', '.gif', 'icon', 'avatar', 'emoji', 'logo', 'flag'])
+Respond only with plain links separated by newlines.
+"""
 
-    try:
-        res = requests.get(url, headers=headers, timeout=10)
-        soup = BeautifulSoup(res.content, "html.parser")
-        imgs = []
+def get_valid_product_links(product_name, brand, sku, max_links=5):
+    prompt = generate_source_links_prompt(product_name, brand, sku)
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.3,
+        messages=[
+            {"role": "system", "content": "You are a product research agent returning valid product detail links."},
+            {"role": "user", "content": prompt},
+        ]
+    )
+    raw_links = response.choices[0].message.content.strip().splitlines()
+    valid_links = []
 
-        for img in soup.find_all("img"):
-            src = (
-                img.get("src") or
-                img.get("data-src") or
-                img.get("data-lazy")
-            )
-
-            if not src:
-                srcset_val = img.get("srcset", "")
-                if srcset_val.strip():
-                    src = srcset_val.strip().split()[0]
-
-            if not src or len(src) < 5:
-                continue
-
-            src = normalize(src, url)
-
-            if not is_valid_filename(src):
-                continue
-
-            alt = img.get("alt") or ""
-            match_text = f"{src.lower()} {alt.lower()}"
-
-            if any(k in match_text for k in keywords) or len(imgs) < max_imgs:
-                if is_large_enough_image(src):
-                    imgs.append(src)
-
-            if len(imgs) >= max_imgs:
+    for url in raw_links:
+        try:
+            r = requests.get(url, timeout=8)
+            if r.status_code == 200 and (sku.lower() in r.text.lower() or brand.lower() in r.text.lower() or product_name.lower().split()[0] in r.text.lower()):
+                valid_links.append(url)
+            if len(valid_links) >= max_links:
                 break
+        except Exception:
+            continue
+    return valid_links
 
-        return imgs
-
-    except Exception as e:
-        print(f"⚠️ Skipping {url} → {e}")
-        return []
-    
-def extract_images_from_all_urls(url_list, keywords, global_limit=20):
+def extract_images_from_all_urls(product_name, brand, sku, keywords=None, global_limit=20):
     all_images = []
+    urls = get_valid_product_links(product_name, brand, sku)
 
-    for url in url_list:
-        print(f"🔍 Scanning {url}")
-        imgs = extract_images_from_single_url(url, keywords, max_imgs=global_limit)
-        for img in imgs:
-            if img not in all_images and len(all_images) < global_limit:
-                all_images.append(img)
+    print(f"\n🔍 Processing: {product_name} ({sku})")
+
+    # Image filters
+    block_if_contains = ["facebook.com/tr", "datocms-assets.com", "logo", "sprite", "icon", "tracking"]
+    allowed_ext = (".jpg", ".jpeg", ".png", ".webp")
+
+    for url in urls:
+        print(f"🔎 Scanning {url}")
+        try:
+            res = requests.get(url, timeout=10)
+            if res.status_code != 200:
+                continue
+            soup = BeautifulSoup(res.text, 'html.parser')
+            imgs = soup.find_all('img')
+            found = 0
+
+            for tag in imgs:
+                src = tag.get('src') or tag.get('data-src') or tag.get('data-original')
+                if not src:
+                    continue
+                src = src.strip()
+                if src.startswith('//'):
+                    src = 'https:' + src
+                if not src.startswith('http'):
+                    continue
+                if not src.lower().endswith(allowed_ext):
+                    continue
+                if any(bad in src.lower() for bad in block_if_contains):
+                    continue
+                if len(src) < 10:
+                    continue
+
+                all_images.append(src)
+                found += 1
+                if len(all_images) >= global_limit:
+                    break
+
+        except Exception:
+            continue
 
         if len(all_images) >= global_limit:
             break
 
-    return all_images
+    return all_images[:global_limit]

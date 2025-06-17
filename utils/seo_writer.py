@@ -1,6 +1,8 @@
 import re
 from openai import OpenAI
 from dotenv import dotenv_values
+import unicodedata
+from utils.helpers import slugify_url
 
 config = dotenv_values(".env")
 client = OpenAI(api_key=config["APIKEY"])
@@ -68,3 +70,44 @@ keyword1, keyword2, keyword3, keyword4, keyword5
         keywords = []
 
     return en_short, en_long, is_short, is_long, keywords
+
+
+
+def generate_image_search_links(product, brand, sku, desc, specs):
+    product_name = re.sub(r"\(.*?\)", "", product).strip()
+    english_product = unicodedata.normalize('NFKD', product_name).encode('ascii', 'ignore').decode('ascii')
+    slug = slugify_url(english_product)
+    guessed_link = f"https://ht.is/{slug}.html"
+
+#     prompt = f"""
+# Given the product:
+# - Name: {product}
+# - Brand: {brand}
+# - SKU: {sku}
+
+# Generate 3-5 accurate, live, product-specific web page URLs from trusted e-commerce sources (e.g., ht.is, amazon.com, brands’ sites) where actual product images are likely found.
+
+# Priority rules:
+# 1. Check if `https://ht.is/{slug}.html` is a valid product page and include it first.
+# 2. Avoid home pages or category pages.
+# 3. Only include links that are likely to contain product images.
+# 4. Prefer sites like `ht.is`, `amazon.com`, `brands’ site`, etc.
+
+# Respond with only plain URLs, one per line.
+# """
+    prompt = f"""
+    Search the Web eaxctly for: "{product} {sku}" and return the first three links that is been retrieved exactly as it is, do not shorten or do something with the URL. Just search and provide the three URLS."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.3,
+        messages=[
+            {"role": "system", "content": "You are a smart assistant returning only web page links of the specified product."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    urls = re.findall(r'https?://[^\s]+', response.choices[0].message.content)
+    if guessed_link not in urls:
+        urls.insert(0, guessed_link)
+    return urls
