@@ -62,8 +62,7 @@ HT_CONTENT_GEN_PROJECT/
 > Moreover, the Aqara G5 Pro is designed to withstand harsh weather conditions, operating effectively in temperatures ranging from -30°C to 50°C. Its built-in 32GB eMMC storage allows for reliable local storage, while also supporting connections to NAS boxes and RTSP streaming for broader storage and accessibility options. Whether you’re upgrading your security system or integrating with an existing setup, the Aqara G5 Pro is the ideal choice for a smart, secure, and connected home.
 
 ### 🖼️ Image Sample Preview
-![image](https://github.com/user-attachments/assets/86abc762-7ae3-4305-afd8-9197bc61f40a)
-
+![Screenshot 2025-06-15 184402](https://github.com/user-attachments/assets/dc4707c4-1195-4d4c-8c29-11ec350e098a)
 
 ---
 
