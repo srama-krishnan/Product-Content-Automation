@@ -1,9 +1,8 @@
 from openai import OpenAI
 import os
-from dotenv import load_dotenv
+from utils.singleton_client import get_openai_client
 
-load_dotenv()
-client = OpenAI(api_key=os.getenv("APIKEY"))
+client = get_openai_client()
 
 def generate_image_source_links_with_openai(product_name, brand, sku, description):
     # Convert Icelandic to English first

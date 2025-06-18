@@ -2,13 +2,12 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from openai import OpenAI
-from dotenv import dotenv_values
 from utils.helpers import slugify_url
 from urllib.parse import urljoin
 from utils.helpers import load_prompt_template
+from utils.singleton_client import get_openai_client
 
-config = dotenv_values(".env")
-client = OpenAI(api_key=config["APIKEY"])
+client = get_openai_client()
 
 def generate_source_links_prompt(product_name, brand, sku):
     template = load_prompt_template("source_links_prompt.txt")

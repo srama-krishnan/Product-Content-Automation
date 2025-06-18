@@ -1,11 +1,8 @@
 import re
 from openai import OpenAI
-from dotenv import load_dotenv
 import os
-
-load_dotenv()
-OPENAI_API_KEY = os.getenv("APIKEY")
-client = OpenAI(api_key=OPENAI_API_KEY)
+from utils.singleton_client import get_openai_client
+client = get_openai_client()
 
 def get_raw_details(PName, Brand, SKU):
     response = client.responses.create(

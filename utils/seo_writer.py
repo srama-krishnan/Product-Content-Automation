@@ -1,12 +1,11 @@
 import re
 from openai import OpenAI
-from dotenv import dotenv_values
 import unicodedata
 from utils.helpers import slugify_url
 from utils.helpers import load_prompt_template
+from utils.singleton_client import get_openai_client
 
-config = dotenv_values(".env")
-client = OpenAI(api_key=config["APIKEY"])
+client = get_openai_client()
 
 def generate_multilang_descriptions(official_description, temperature=0.7, top_p=1.0, max_tokens=800, tone="Write professionally and highlight key features.", short_limit=25, long_limit=200, extra_keywords=None):
 
