@@ -5,25 +5,19 @@ from openai import OpenAI
 from dotenv import dotenv_values
 from utils.helpers import slugify_url
 from urllib.parse import urljoin
+from utils.helpers import load_prompt_template
 
 config = dotenv_values(".env")
 client = OpenAI(api_key=config["APIKEY"])
 
 def generate_source_links_prompt(product_name, brand, sku):
-    return f"""
-Given the following product details, return 3 to 5 direct URLs to official product pages or trusted retailer listings that show clear product images.
-
-Only return URLs that:
-- Lead directly to a product detail page (not a search, category, or homepage)
-- Are valid and accessible
-- Contain relevant images for scraping
-
-Product Name: {product_name}
-Brand: {brand}
-SKU: {sku}
-
-Respond only with plain links separated by newlines.
-"""
+    template = load_prompt_template("source_links_prompt.txt")
+    system_prompt = template.format(
+        product_name=product_name,
+        brand=brand,
+        sku=sku,
+    )
+    return system_prompt
 
 def get_valid_product_links(product_name, brand, sku, max_links=5):
     prompt = generate_source_links_prompt(product_name, brand, sku)
@@ -52,7 +46,7 @@ def get_valid_product_links(product_name, brand, sku, max_links=5):
 def extract_images_from_all_urls(urls, keywords=None, global_limit=20):
     all_images = []
 
-    print(f"\n🔍 Processing: {urls}")
+    #print(f"\n🔍 Processing: {urls}")
 
     # Filters
     block_if_contains = ["facebook.com/tr", "datocms-assets.com", "logo", "sprite", "icon", "tracking"]
@@ -92,10 +86,10 @@ def extract_images_from_all_urls(urls, keywords=None, global_limit=20):
                 if len(all_images) >= global_limit:
                     break
 
-            print(f"✅ Found {found} images from {url}")
+            #print(f"Found {found} images from {url}")
 
         except Exception as e:
-            print(f"❌ Error fetching from {url}: {e}")
+            print(f"Error fetching from {url}: {e}")
             continue
 
         if len(all_images) >= global_limit:

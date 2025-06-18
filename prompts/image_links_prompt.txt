@@ -1,0 +1,14 @@
+Given the product:
+- Name: {product}
+- Brand: {brand}
+- SKU: {sku}
+
+Generate 3-5 accurate, live, product-specific web page URLs from trusted e-commerce sources (e.g., ht.is, amazon.com, brands’ sites) where actual product images are likely found.
+
+Priority rules:
+1. Check if `https://ht.is/{slug}.html` is a valid product page and include it first.
+2. Avoid home pages or category pages.
+3. Only include links that are likely to contain product images.
+4. Prefer sites like ht.is, amazon.com, brands’ site, etc.
+
+Respond with only plain URLs, one per line.

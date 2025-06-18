@@ -1,0 +1,12 @@
+Given the following product details, return 3 to 5 direct URLs to official product pages or trusted retailer listings that show clear product images.
+
+Only return URLs that:
+- Lead directly to a product detail page (not a search, category, or homepage)
+- Are valid and accessible
+- Contain relevant images for scraping
+
+Product Name: {product_name}
+Brand: {brand}
+SKU: {sku}
+
+Respond only with plain links separated by newlines.

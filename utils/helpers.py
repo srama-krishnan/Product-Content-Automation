@@ -11,3 +11,7 @@ def slugify_url(text):
     text = re.sub(r"[^\w\s-]", '', text).strip().lower()
     text = re.sub(r"[\s_]+", '-', text)
     return text
+
+def load_prompt_template(filename):
+    with open(f"prompts/{filename}", "r", encoding="utf-8") as f:
+        return f.read()

@@ -35,7 +35,7 @@ def save_json(data, sku):
         json.dump(data, jf, indent=4, ensure_ascii=False)
 
 def process_product(product, brand, sku, config):
-    print(f"\n🔍 Processing: {product} ({sku})")
+    print(f"\n🔍 Processing: {product} ({sku})\n")
     try:
         raw = get_raw_details(product, brand, sku)
         cleaned = clean_raw_text(raw)
@@ -79,11 +79,11 @@ def process_product(product, brand, sku, config):
         print("\n📦 OUTPUT:")
         for k, v in json_data.items():
             if k != "image_urls":
-                print(f"{k}: {v}")
-        print(f"📝 JSON saved to: output/json/{sku}.json")
+                print(f"\n{k}: {v}")
+        print(f"\n📝 JSON saved to: output/json/{sku}.json")
 
     except Exception as e:
-        print(f"❌ Failed for {product}: {e}")
+        print(f"Failed for {product}: {e}")
 
 # ---- Main Entry ----
 product = normalize_input(input("Enter Product Name: "))
