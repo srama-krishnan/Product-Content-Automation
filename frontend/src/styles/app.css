@@ -7,6 +7,16 @@
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
+body {
+  background-color: #222223; /* Pure black background */
+  color: #ffffff;            /* Default text color white */
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+h2{
+    text-align: center;
+}
 
 .input-group {
   display: flex;

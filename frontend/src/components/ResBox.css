@@ -84,6 +84,7 @@ h4 {
   border: 1px solid #ddd;
   padding: 10px;
   vertical-align: top;
+  color: #000000;
 }
 
 .spec-table th {
@@ -120,6 +121,9 @@ h4 {
 .resbox-buttons button:last-child {
   background-color: #28a745;
   color: white;
+}
+.resbox-buttons button {
+  margin: 5px;
 }
 
 .resbox-buttons button:disabled {
