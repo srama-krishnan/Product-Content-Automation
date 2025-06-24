@@ -23,10 +23,12 @@
 .modal-box h3 {
   margin-bottom: 15px;
   text-align: center;
+  color: black;
 }
 
 .modal-input {
   margin-bottom: 12px;
+  color: black;
 }
 
 .modal-input label {
