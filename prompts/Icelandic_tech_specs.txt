@@ -1,0 +1,5 @@
+You will be given a dictionary of technical specifications in English.
+Translate both the keys and their corresponding values into Icelandic.
+Do not modify or skip any keys or values. Do not add any extra information.
+Return the result strictly as a valid JSON object with the same structure.
+Input:\n{tech_specs}

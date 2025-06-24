@@ -81,3 +81,28 @@ def generate_image_search_links(product, brand, sku, desc, specs):
         urls.insert(0, guessed_link)
     #print(f"Final URL list: {urls}")
     return urls
+
+def translate_specs_to_icelandic(tech_specs: dict) -> dict:
+    template = load_prompt_template("Icelandic_tech_specs.txt")
+    prompt = template.format(
+        tech_specs = tech_specs
+    )
+    # prompt = (
+    #     "You will be given a dictionary of technical specifications in English.\n"
+    #     "Translate both the keys and their corresponding values into Icelandic.\n"
+    #     "Do not modify or skip any keys or values. Do not add any extra information.\n"
+    #     "Return the result strictly as a valid JSON object with the same structure.\n\n"
+    #     f"Input:\n{tech_specs}"
+    # )
+
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a professional Icelandic technical translator."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.75,
+    )
+
+    import json
+    return json.loads(response.choices[0].message.content.strip())
