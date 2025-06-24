@@ -4,7 +4,7 @@ from datetime import datetime
 
 from utils.helpers import normalize_input, slugify_url
 from utils.extractor import get_raw_details, clean_raw_text, parse_raw_details
-from utils.seo_writer import generate_multilang_descriptions, generate_image_search_links
+from utils.seo_writer import generate_multilang_descriptions, generate_image_search_links, translate_specs_to_icelandic
 from utils.image_scraper import extract_images_from_all_urls
 from utils.html_exporter import export_images_to_html
 
@@ -42,7 +42,7 @@ def process_product(product, brand, sku, config):
         raw = get_raw_details(product, brand, sku)
         cleaned = clean_raw_text(raw)
         desc, specs, urls, spec_dict = parse_raw_details(cleaned)
-
+        translated_specs = translate_specs_to_icelandic(spec_dict)
         en_short, en_long, is_short, is_long, keywords = generate_multilang_descriptions(
             desc,
             temperature=config["temperature"],
@@ -71,6 +71,7 @@ def process_product(product, brand, sku, config):
             "long_description_is": is_long,
             "keywords": keywords,
             "technical_specifications": spec_dict,
+            "translated_technical_specifications": translated_specs,
             "image_file_path": html_filename,
             "image_urls": images,
             "generated_at": now
@@ -109,7 +110,7 @@ def generate_product_json(data):
         raw = get_raw_details(product, brand, sku)
         cleaned = clean_raw_text(raw)
         desc, specs, urls, spec_dict = parse_raw_details(cleaned)
-
+        translated_specs = translate_specs_to_icelandic(spec_dict)
         en_short, en_long, is_short, is_long, keywords = generate_multilang_descriptions(
             desc,
             temperature=config["temperature"],
@@ -138,6 +139,7 @@ def generate_product_json(data):
             "long_description_is": is_long,
             "keywords": keywords,
             "technical_specifications": spec_dict,
+            "translated_technical_specifications": translated_specs,
             "image_file_path": html_filename,
             "image_urls": images,
             "generated_at": now
