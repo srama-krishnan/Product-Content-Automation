@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import "./InputForm.css"
 const InputForm = ({ onGenerate, onOpenSettings, isLoading }) => {
   const [productName, setProductName] = useState('');
   const [brand, setBrand] = useState('');
