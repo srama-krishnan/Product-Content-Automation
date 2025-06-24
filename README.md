@@ -1,6 +1,6 @@
 # Product Content Automation
 
-A modular Python automation tool that generates SEO-optimized content and visual previews for international products — including those with Icelandic names. Given a product name, it extracts raw product data, generates descriptions, and scrapes relevant images to produce a simple HTML preview for each product.
+A Python automation tool that generates SEO-optimized content and visual previews for international products — including those with Icelandic names. Given a product name, it extracts raw product data, generates descriptions, and scrapes relevant images to produce a simple HTML preview for each product.
 
 ---
 
