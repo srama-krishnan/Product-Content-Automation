@@ -20,4 +20,4 @@ def export_images_to_html(image_urls, filename="images_preview.html", images_per
 
     with open(filename, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"✅ Image preview exported → {filename}")
+    #print(f"✅ Image preview exported → {filename}")

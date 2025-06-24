@@ -52,7 +52,7 @@ def extract_images_from_all_urls(urls, keywords=None, global_limit=20):
     allowed_ext = (".jpg", ".jpeg", ".png", ".webp")
 
     for url in urls:
-        print(f"🔎 Scanning {url}")
+        #print(f"🔎 Scanning {url}")
         try:
             res = requests.get(url, timeout=10)
             if res.status_code != 200:
@@ -88,7 +88,7 @@ def extract_images_from_all_urls(urls, keywords=None, global_limit=20):
             #print(f"Found {found} images from {url}")
 
         except Exception as e:
-            print(f"Error fetching from {url}: {e}")
+            #print(f"Error fetching from {url}: {e}")
             continue
 
         if len(all_images) >= global_limit:

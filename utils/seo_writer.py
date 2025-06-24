@@ -79,5 +79,5 @@ def generate_image_search_links(product, brand, sku, desc, specs):
     urls = re.findall(r'https?://[^\s]+', raw_response)
     if guessed_link not in urls:
         urls.insert(0, guessed_link)
-    print(f"Final URL list: {urls}")
+    #print(f"Final URL list: {urls}")
     return urls
