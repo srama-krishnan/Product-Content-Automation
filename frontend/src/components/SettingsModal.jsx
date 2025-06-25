@@ -1,52 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import './SettingsModal.css';
 
-const SettingsModal = ({ initialValues, onClose, onSave }) => {
-  const [form, setForm] = useState({
-    tone: '',
-    temperature: '',
-    top_p: '',
-    max_tokens: '',
-    short_desc_words: '',
-    long_desc_words: '',
-    keywords: '',
-  });
+const defaultSettings = {
+  tone: '',
+  temperature: '0.7',
+  top_p: '1.0',
+  max_tokens: '800',
+  short_desc_words: '25',
+  long_desc_words: '200',
+  keywords: '',
+};
 
-  // Refresh form state when modal is reopened
+const SettingsModal = ({ initialValues, onClose, onSave }) => {
+  const [form, setForm] = useState({ ...defaultSettings, ...initialValues });
+
   useEffect(() => {
-    if (initialValues) {
-      setForm({
-        tone: initialValues.tone || '',
-        temperature: initialValues.temperature || '',
-        top_p: initialValues.top_p || '',
-        max_tokens: initialValues.max_tokens || '',
-        short_desc_words: initialValues.short_desc_words || '',
-        long_desc_words: initialValues.long_desc_words || '',
-        keywords: Array.isArray(initialValues.keywords)
-          ? initialValues.keywords.join(', ')
-          : initialValues.keywords || '',
-      });
-    }
+    setForm({ ...defaultSettings, ...initialValues });
   }, [initialValues]);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Numeric fields validation
+    if (['temperature', 'top_p'].includes(name)) {
+      if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 1)) {
+        setForm({ ...form, [name]: value });
+      }
+    } else if (['max_tokens', 'short_desc_words', 'long_desc_words'].includes(name)) {
+      if (/^\d*$/.test(value)) {
+        setForm({ ...form, [name]: value });
+      }
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSave = () => {
     const finalData = {
       ...form,
-      temperature: parseFloat(form.temperature),
-      top_p: parseFloat(form.top_p),
-      max_tokens: parseInt(form.max_tokens),
-      short_desc_words: parseInt(form.short_desc_words),
-      long_desc_words: parseInt(form.long_desc_words),
       keywords: form.keywords
         ? form.keywords.split(',').map(k => k.trim()).filter(Boolean)
         : [],
     };
     onSave(finalData);
-    onClose();
   };
 
   return (
@@ -61,75 +57,72 @@ const SettingsModal = ({ initialValues, onClose, onSave }) => {
             name="tone"
             value={form.tone}
             onChange={handleChange}
-            placeholder="Enter tone"
+            placeholder="Write professionally and highlight key features"
           />
         </div>
 
         <div className="modal-input">
           <label>Temperature</label>
           <input
-            type="number"
-            step="0.1"
+            type="text"
             name="temperature"
             value={form.temperature}
             onChange={handleChange}
-            placeholder="e.g., 0.7"
           />
+          <small className="helper-text">Allowed values: 0.0 – 1.0</small>
         </div>
 
         <div className="modal-input">
           <label>Top P</label>
           <input
-            type="number"
-            step="0.1"
+            type="text"
             name="top_p"
             value={form.top_p}
             onChange={handleChange}
-            placeholder="e.g., 1.0"
           />
+          <small className="helper-text">Allowed values: 0.0 – 1.0</small>
         </div>
 
         <div className="modal-input">
           <label>Max Tokens</label>
           <input
-            type="number"
+            type="text"
             name="max_tokens"
             value={form.max_tokens}
             onChange={handleChange}
-            placeholder="e.g., 800"
           />
+          <small className="helper-text">Positive integers (e.g., 800)</small>
         </div>
 
         <div className="modal-input">
           <label>Short Description Word Limit</label>
           <input
-            type="number"
+            type="text"
             name="short_desc_words"
             value={form.short_desc_words}
             onChange={handleChange}
-            placeholder="e.g., 25"
           />
+          <small className="helper-text">Recommended: 10 – 50</small>
         </div>
 
         <div className="modal-input">
           <label>Long Description Word Limit</label>
           <input
-            type="number"
+            type="text"
             name="long_desc_words"
             value={form.long_desc_words}
             onChange={handleChange}
-            placeholder="e.g., 200"
           />
+          <small className="helper-text">Recommended: 100 – 300</small>
         </div>
 
         <div className="modal-input">
-          <label>Extra Keywords (comma separated)</label>
+          <label>Keywords (comma separated)</label>
           <input
             type="text"
             name="keywords"
             value={form.keywords}
             onChange={handleChange}
-            placeholder="e.g., smart, waterproof"
           />
         </div>
 
